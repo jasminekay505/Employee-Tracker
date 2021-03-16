@@ -6,7 +6,7 @@ USE company_db;
 
 CREATE TABLE department (
 id INT NOT NULL AUTO_INCREMENT,
-name VARCHAR(30),
+dept_name VARCHAR(30),
 PRIMARY KEY (id)
 );
 
@@ -29,12 +29,3 @@ PRIMARY KEY (id),
 FOREIGN KEY (role_id) REFERENCES role(id),
 FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
-
-INSERT INTO department (name)
-VALUES ("Engineering");
-
-INSERT INTO role (title, salary, department_id)
-VALUES ("System Engineer", 100.59, 1);
-
-INSERT INTO employee (first_name, last_name, role_id)
-VALUES("Jasmine", "Sanchez", 1);
