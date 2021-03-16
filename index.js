@@ -2,6 +2,7 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const table = require('console.table');
+//var connection = mysql.createConnection({multipleStatements:true});
 
 //Connection information
 const connection = mysql.createConnection({
@@ -10,6 +11,7 @@ const connection = mysql.createConnection({
     user: 'root',
     password: 'password',
     database: 'company_db',
+    multipleStatements: true,
 
 });
 
@@ -24,11 +26,11 @@ init = () => {
     inquirer
         .prompt({
             name: 'action',
-            type: 'rawlist',
+            type: 'list',
             message: 'What would you like to do?',
             choices: [
                 'Add department, role or employee',
-                'View all departments, roles, or employees',
+                'View all departments, roles or employees',
                 'Update employee role',
                 'Update employee manager',
                 'View employees by manager',
@@ -42,7 +44,7 @@ init = () => {
                 case 'Add department, role or employee':
                     createInit();
                     break;
-                case 'View all departments, roles, or employees':
+                case 'View all departments, roles or employees':
                     readInit();
                     break;
                 case 'Update employee role':
@@ -103,7 +105,7 @@ const createDepartment = () => {
             console.log('Adding new department...\n');
             connection.query('INSERT INTO department SET ?',
                 {
-                    name: answer.deptName
+                    dept_name: answer.deptName
                 },
                 (err, res) => {
                     if (err) throw err;
@@ -259,36 +261,37 @@ const viewEmployee = () => {
 
 // Update employee role based on input
 const updateRole = () => {
-    inquirer
+    let query = `SELECT CONCAT(first_name, " ", last_name) AS full_name from employee; SELECT * from role;`
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        inquirer
         .prompt([
             {
                 name: 'employee_id',
-                type: 'input',
-                message: 'Please enter the id of the employee whose role you would like to update.'
+                type: 'list',
+                choices: res[0].map(choice => choice.full_name),
+                message: 'Select an employee to update.'
             },
             {
                 name: 'newRole',
-                type: 'input',
-                message: 'Please enter the new role id.'
+                type: 'list',
+                choices: res[1].map(choice => choice.title),
+                message: 'Select a new role.'
             }
         ])
         .then((answer) => {
             console.log('Updating employee role...\n');
-            const query = connection.query(
-                'UPDATE employee SET ? WHERE ?',
-                [
-                    {
-                        role_id: answer.newRole,
-                    },
-                    {
-                        id: answer.employee_id,
-                    }
-                ],
+            connection.query(
+                `UPDATE employee
+                SET role_id = (SELECT role.id FROM role WHERE title = '${answer.newRole}')
+                WHERE id = (SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.employee_id}') AS temp)`,
                 (err, res) => {
                     if (err) throw err;
                     console.log(`${res.affectedRows} employee updated!\n`);
+                    init();
                 });
-        })
+        });
+    }); 
 }
 // Determine what user wants to remove
 const remove = () => {
