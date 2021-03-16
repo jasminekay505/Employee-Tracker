@@ -13,7 +13,7 @@ PRIMARY KEY (id)
 CREATE TABLE role ( 
 id INT NOT NULL AUTO_INCREMENT,
 title VARCHAR(30),
-salary DECIMAL (5,2),
+salary DECIMAL (7,2),
 department_id INT NOT NULL,
 PRIMARY KEY (id),
 FOREIGN KEY (department_id) REFERENCES department(id)
@@ -29,3 +29,12 @@ PRIMARY KEY (id),
 FOREIGN KEY (role_id) REFERENCES role(id),
 FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
+
+INSERT INTO department (name)
+VALUES ("Engineering");
+
+INSERT INTO role (title, salary, department_id)
+VALUES ("System Engineer", 100.59, 1);
+
+INSERT INTO employee (first_name, last_name, role_id)
+VALUES("Jasmine", "Sanchez", 1);
