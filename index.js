@@ -219,7 +219,7 @@ const readInit = () => {
 
 //Show all departments
 const viewDepartments = () => {
-    const query = 'SELECT * FROM department';
+    let query = `SELECT department.id AS 'ID', dept_name AS 'Department' FROM department;`;
     console.log('Selecting all departments...\n');
     connection.query(query, (err, res) => {
         if (err) throw err;
@@ -230,7 +230,8 @@ const viewDepartments = () => {
 
 //Show all roles
 const viewRoles = () => {
-    const query = 'Select * FROM role';
+    let query = `SELECT role.id AS 'ID',  title AS 'Role', salary AS 'Salary', dept_name AS 'Department' FROM role `;
+    query += `JOIN department ON department.id = role.department_id;`;
     console.log('Selecting all roles...\n');
     connection.query(query, (err, res) => {
         if (err) throw err;
@@ -241,7 +242,9 @@ const viewRoles = () => {
 
 //Show all employees
 const viewEmployee = () => {
-    const query = 'Select * FROM employee';
+    let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name', title AS 'Role', salary AS 'Salary', dept_name AS 'Department' FROM employee `;
+    query += `JOIN role on role.id = employee.role_id `;
+    query += `JOIN department ON department.id = role.department_id;`;
     console.log('Selecting all employees...\n');
     connection.query(query, (err, res) => {
         if (err) throw err;
