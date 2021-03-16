@@ -9,7 +9,7 @@ const remove = require('./lib/delete');
 
 //Connect to mysql
 const connection = mysql.createConnection({
-    host:'localhost',
+    host: 'localhost',
     port: 3306,
     user: 'root',
     password: 'password',
@@ -18,18 +18,19 @@ const connection = mysql.createConnection({
 });
 
 connection.connect((err) => {
-    if(err) throw err;
-    console.log(`connected as id ${connection.threadId}`);
-    connection.end();
-    });
+    if (err) throw err;
+    //console.log(`connected as id ${connection.threadId}`);
+    init();
+    //connection.end();
+});
 
-const init = () => { 
+const init = () => {
     inquirer
         .prompt({
-            name:'action',
+            name: 'action',
             type: 'rawlist',
             message: 'What would you like to do?',
-            choices:[
+            choices: [
                 'Add department, role or employee',
                 'View deparment, role, or employee',
                 'Update employee role',
@@ -40,17 +41,21 @@ const init = () => {
                 'Exit application'
             ],
         })
-        .then((answer) => { 
+        .then((answer) => {
             switch (answer.action) {
                 case 'Add deparment, role or employee':
+                    break;
+                case 'View deparment, role or employee':
+                    break;
+                case 'Update employee role':
                     break;
                 case 'Exit application':
                     connection.end();
                     break;
-                default: 
-                console.log(`Invalid action: ${answer.action}`);
-                connection.end();
-                break;
+                default:
+                    console.log(`Invalid action: ${answer.action}`);
+                    connection.end();
+                    break;
             }
         });
 };
