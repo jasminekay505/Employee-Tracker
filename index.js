@@ -115,7 +115,11 @@ const createDepartment = () => {
 
 //Add new role
 const createRole = () => {
-    inquirer
+    let query = `SELECT * FROM department`
+    connection.query(query, (err, res) => { 
+        if (err) throw err;
+
+        inquirer
         .prompt([
             {
                 name: 'title',
@@ -129,24 +133,25 @@ const createRole = () => {
             },
             {
                 name: 'dept_id',
-                type: 'input',
-                message: 'What is the department id of the role?'
+                type: 'list',
+                choices: res.map(choice => choice.dept_name),
+                message: 'Which department does this role belong to?'
             }
         ])
         .then((answer) => {
             console.log('Adding new role...\n');
-            connection.query('INSERT INTO role SET ?',
-                {
-                    title: answer.title,
-                    salary: answer.salary,
-                    department_id: answer.dept_id
-                },
+            connection.query(`INSERT INTO role (title,salary,department_id)
+                VALUES
+                    ('${answer.title}', '${answer.salary}', (SELECT id FROM department WHERE dept_name = '${answer.dept_id}'));`,
                 (err, res) => {
                     if (err) throw err;
                     console.log(`${res.affectedRows} role added!\n`);
                     init();
                 });
         });
+
+    })
+    
 }
 
 //Add new employee
