@@ -1,11 +1,11 @@
 //Dependencies
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-const table = require('console.table');
+//const table = require('console.table');
 const create = require('./lib/create');
 const read = require('./lib/read');
-const update = require('./lib/update');
-const remove = require('./lib/delete');
+// const update = require('./lib/update');
+// const remove = require('./lib/delete');
 
 //Connect to mysql
 const connection = mysql.createConnection({
@@ -32,7 +32,7 @@ const init = () => {
             message: 'What would you like to do?',
             choices: [
                 'Add department, role or employee',
-                'View deparment, role, or employee',
+                'View department, role, or employee',
                 'Update employee role',
                 'Update employee manager',
                 'View employees by manager',
@@ -43,9 +43,11 @@ const init = () => {
         })
         .then((answer) => {
             switch (answer.action) {
-                case 'Add deparment, role or employee':
+                case 'Add department, role or employee':
+                    create.createInit();
                     break;
-                case 'View deparment, role or employee':
+                case 'View department, role, or employee':
+                    read.readInit();
                     break;
                 case 'Update employee role':
                     break;
