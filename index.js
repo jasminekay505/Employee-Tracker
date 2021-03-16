@@ -293,6 +293,9 @@ const updateRole = () => {
         });
     }); 
 }
+
+//View employees by department
+
 // Determine what user wants to remove
 const remove = () => {
     inquirer
