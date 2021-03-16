@@ -4,7 +4,7 @@ const inquirer = require('inquirer');
 //const table = require('console.table');
 const create = require('./lib/create');
 const read = require('./lib/read');
-// const update = require('./lib/update');
+const update = require('./lib/update');
 // const remove = require('./lib/delete');
 
 //Connect to mysql
@@ -50,6 +50,7 @@ const init = () => {
                     read.readInit();
                     break;
                 case 'Update employee role':
+                    update.updateRole();
                     break;
                 case 'Exit application':
                     connection.end();
