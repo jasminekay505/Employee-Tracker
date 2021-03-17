@@ -2,7 +2,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const table = require('console.table');
-//var connection = mysql.createConnection({multipleStatements:true});
 
 //Connection information
 const connection = mysql.createConnection({
@@ -12,12 +11,31 @@ const connection = mysql.createConnection({
     password: 'password',
     database: 'company_db',
     multipleStatements: true,
-
 });
 
 //Connect to mysql and start app
 connection.connect((err) => {
     if (err) throw err;
+    console.log(`
+--------------------------------------------------------------------------------
+_______  __   __  _______  ___      _______  __   __  _______  _______ 
+|       ||  |_|  ||       ||   |    |       ||  | |  ||       ||       |
+|    ___||       ||    _  ||   |    |   _   ||  |_|  ||    ___||    ___|
+|   |___ |       ||   |_| ||   |    |  | |  ||       ||   |___ |   |___ 
+|    ___||       ||    ___||   |___ |  |_|  ||_     _||    ___||    ___|
+|   |___ | ||_|| ||   |    |       ||       |  |   |  |   |___ |   |___ 
+|_______||_|   |_||___|    |_______||_______|  |___|  |_______||_______|
+ _______  ______    _______  _______  ___   _  _______  ______          
+|       ||    _ |  |   _   ||       ||   | | ||       ||    _ |         
+|_     _||   | ||  |  |_|  ||       ||   |_| ||    ___||   | ||         
+  |   |  |   |_||_ |       ||       ||      _||   |___ |   |_||_        
+  |   |  |    __  ||       ||      _||     |_ |    ___||    __  |       
+  |   |  |   |  | ||   _   ||     |_ |    _  ||   |___ |   |  | |       
+  |___|  |___|  |_||__| |__||_______||___| |_||_______||___|  |_|
+
+--------------------------------------------------------------------------------  
+    `
+    )
     init();
 });
 
@@ -32,10 +50,8 @@ init = () => {
                 'Add department, role or employee',
                 'View all departments, roles or employees',
                 'Update employee role',
-                'Update employee manager',
-                'View employees by manager',
+                'View employees by department',
                 'Delete department, role or employee',
-                'View budget summary by department',
                 'Exit application'
             ],
         })
@@ -49,6 +65,9 @@ init = () => {
                     break;
                 case 'Update employee role':
                     updateRole();
+                    break;
+                case 'View employees by department':
+                    viewEmployeebyDept();
                     break;
                 case 'Exit application':
                     connection.end();
@@ -265,37 +284,60 @@ const updateRole = () => {
     connection.query(query, (err, res) => {
         if (err) throw err;
         inquirer
-        .prompt([
-            {
-                name: 'employee_id',
-                type: 'list',
-                choices: res[0].map(choice => choice.full_name),
-                message: 'Select an employee to update.'
-            },
-            {
-                name: 'newRole',
-                type: 'list',
-                choices: res[1].map(choice => choice.title),
-                message: 'Select a new role.'
-            }
-        ])
-        .then((answer) => {
-            console.log('Updating employee role...\n');
-            connection.query(
-                `UPDATE employee
+            .prompt([
+                {
+                    name: 'employee_id',
+                    type: 'list',
+                    choices: res[0].map(choice => choice.full_name),
+                    message: 'Select an employee to update.'
+                },
+                {
+                    name: 'newRole',
+                    type: 'list',
+                    choices: res[1].map(choice => choice.title),
+                    message: 'Select a new role.'
+                }
+            ])
+            .then((answer) => {
+                console.log('Updating employee role...\n');
+                connection.query(
+                    `UPDATE employee
                 SET role_id = (SELECT role.id FROM role WHERE title = '${answer.newRole}')
                 WHERE id = (SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.employee_id}') AS temp)`,
-                (err, res) => {
-                    if (err) throw err;
-                    console.log(`${res.affectedRows} employee updated!\n`);
-                    init();
-                });
-        });
-    }); 
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(`${res.affectedRows} employee updated!\n`);
+                        init();
+                    });
+            });
+    });
 }
 
 //View employees by department
-
+const viewEmployeebyDept = () => { 
+    let query = `SELECT * from department;`
+    connection.query(query, (err, res) => { 
+        if(err) throw err;
+        inquirer
+        .prompt([
+            {
+                name: 'dept',
+                type: 'list',
+                choices: res.map(choice => choice.dept_name),
+                message:'Select the department whose employees you wish to view.',
+            }
+        ])
+        .then((answer) => { 
+            console.log(`Selecting all employees in ${answer.dept} department...\n`)
+            let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name', title AS 'Role', salary AS 'Salary', dept_name AS 'Department'FROM employee JOIN role on role.id = employee.role_id JOIN department on department.id = role.department_id WHERE department.id = (SELECT id FROM department WHERE dept_name = '${answer.dept}');`
+            connection.query(query, (err, res) =>  { 
+                if (err) throw err;
+                console.table(res);
+                init();
+            });     
+        });
+    });
+}
 // Determine what user wants to remove
 const remove = () => {
     inquirer
@@ -307,7 +349,6 @@ const remove = () => {
                 'Department',
                 'Role',
                 'Employee',
-                'Exit application'
             ],
         })
         .then((answer) => {
@@ -321,12 +362,9 @@ const remove = () => {
                 case 'Employee':
                     deleteEmployee();
                     break;
-                case 'Exit application':
-                    connection.end();
-                    break;
                 default:
                     console.log(`Invalid action: ${answer.action}`);
-                    connection.end();
+                    init();
                     break;
             }
         });
