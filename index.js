@@ -50,6 +50,7 @@ init = () => {
                 'Add department, role or employee',
                 'View all departments, roles or employees',
                 'Update employee role',
+                'Update employee manager',
                 'View employees by department',
                 'View employees by manager',
                 'Delete department, role or employee',
@@ -72,6 +73,9 @@ init = () => {
                     break;
                 case 'View employees by manager':
                     viewEmployeebyMgr();
+                    break;
+                case 'Update employee manager':
+                    updateMgr();
                     break;
                 case 'Exit application':
                     connection.end();
@@ -366,6 +370,41 @@ const viewEmployeebyMgr = () => {
                 init();
             });     
         });
+    });
+}
+
+//Update employee's manager
+const updateMgr = () => {
+    let query = `SELECT CONCAT(first_name, " ", last_name) AS full_name from employee; SELECT CONCAT(first_name, " ", last_name) AS mgr FROM employee WHERE role_id = 1;`
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: 'employee_id',
+                    type: 'list',
+                    choices: res[0].map(choice => choice.full_name),
+                    message: 'Select an employee to update.'
+                },
+                {
+                    name: 'newMgr',
+                    type: 'list',
+                    choices: res[1].map(choice => choice.mgr),
+                    message: 'Select a new manager.'
+                }
+            ])
+            .then((answer) => {
+                console.log('Updating employee manager...\n');
+                connection.query(
+                    `UPDATE employee
+                SET manager_id = (SELECT manager_id WHERE CONCAT(first_name, " ", last_name) = '${answer.newMgr}')
+                WHERE id = (SELECT id WHERE CONCAT(first_name, " ", last_name) = '${answer.employee_id}')`,
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(`${res.affectedRows} employee updated!\n`);
+                        init();
+                    });
+            });
     });
 }
 // Determine what user wants to remove
