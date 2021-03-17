@@ -51,6 +51,7 @@ init = () => {
                 'View all departments, roles or employees',
                 'Update employee role',
                 'View employees by department',
+                'View employees by manager',
                 'Delete department, role or employee',
                 'Exit application'
             ],
@@ -68,6 +69,9 @@ init = () => {
                     break;
                 case 'View employees by department':
                     viewEmployeebyDept();
+                    break;
+                case 'View employees by manager':
+                    viewEmployeebyMgr();
                     break;
                 case 'Exit application':
                     connection.end();
@@ -330,6 +334,32 @@ const viewEmployeebyDept = () => {
         .then((answer) => { 
             console.log(`Selecting all employees in ${answer.dept} department...\n`)
             let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name', title AS 'Role', salary AS 'Salary', dept_name AS 'Department'FROM employee JOIN role on role.id = employee.role_id JOIN department on department.id = role.department_id WHERE department.id = (SELECT id FROM department WHERE dept_name = '${answer.dept}');`
+            connection.query(query, (err, res) =>  { 
+                if (err) throw err;
+                console.table(res);
+                init();
+            });     
+        });
+    });
+}
+
+//View employees by manager
+const viewEmployeebyMgr = () => { 
+    let query = `SELECT CONCAT(first_name, " ", last_name) AS full_name from employee WHERE role_id = '1';`
+    connection.query(query, (err, res) => { 
+        if(err) throw err;
+        inquirer
+        .prompt([
+            {
+                name: 'mgr',
+                type: 'list',
+                choices: res.map(choice => choice.full_name),
+                message:'Select the manager whose employees you wish to view.',
+            }
+        ])
+        .then((answer) => { 
+            console.log(`Selecting all employees who report to ${answer.mgr}...\n`)
+            let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name' FROM employee WHERE manager_id = (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.mgr}');`
             connection.query(query, (err, res) =>  { 
                 if (err) throw err;
                 console.table(res);
