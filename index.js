@@ -396,8 +396,8 @@ const updateMgr = () => {
                 console.log('Updating employee manager...\n');
                 connection.query(
                     `UPDATE employee
-                SET manager_id = (SELECT manager_id WHERE CONCAT(first_name, " ", last_name) = '${answer.newMgr}')
-                WHERE id = (SELECT id WHERE CONCAT(first_name, " ", last_name) = '${answer.employee_id}')`,
+                SET manager_id = (SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.newMgr}') AS temp)
+                WHERE id = (SELECT id FROM (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.employee_id}') AS temp)`,
                     (err, res) => {
                         if (err) throw err;
                         console.log(`${res.affectedRows} employee updated!\n`);
