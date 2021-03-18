@@ -53,7 +53,6 @@ init = () => {
                 'Update employee manager',
                 'View employees by department',
                 'View employees by manager',
-                'Delete department, role or employee',
                 'Exit application'
             ],
         })
@@ -322,54 +321,54 @@ const updateRole = () => {
 }
 
 //View employees by department
-const viewEmployeebyDept = () => { 
+const viewEmployeebyDept = () => {
     let query = `SELECT * from department;`
-    connection.query(query, (err, res) => { 
-        if(err) throw err;
+    connection.query(query, (err, res) => {
+        if (err) throw err;
         inquirer
-        .prompt([
-            {
-                name: 'dept',
-                type: 'list',
-                choices: res.map(choice => choice.dept_name),
-                message:'Select the department whose employees you wish to view.',
-            }
-        ])
-        .then((answer) => { 
-            console.log(`Selecting all employees in ${answer.dept} department...\n`)
-            let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name', title AS 'Role', salary AS 'Salary', dept_name AS 'Department'FROM employee JOIN role on role.id = employee.role_id JOIN department on department.id = role.department_id WHERE department.id = (SELECT id FROM department WHERE dept_name = '${answer.dept}');`
-            connection.query(query, (err, res) =>  { 
-                if (err) throw err;
-                console.table(res);
-                init();
-            });     
-        });
+            .prompt([
+                {
+                    name: 'dept',
+                    type: 'list',
+                    choices: res.map(choice => choice.dept_name),
+                    message: 'Select the department whose employees you wish to view.',
+                }
+            ])
+            .then((answer) => {
+                console.log(`Selecting all employees in ${answer.dept} department...\n`)
+                let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name', title AS 'Role', salary AS 'Salary', dept_name AS 'Department'FROM employee JOIN role on role.id = employee.role_id JOIN department on department.id = role.department_id WHERE department.id = (SELECT id FROM department WHERE dept_name = '${answer.dept}');`
+                connection.query(query, (err, res) => {
+                    if (err) throw err;
+                    console.table(res);
+                    init();
+                });
+            });
     });
 }
 
 //View employees by manager
-const viewEmployeebyMgr = () => { 
+const viewEmployeebyMgr = () => {
     let query = `SELECT CONCAT(first_name, " ", last_name) AS full_name from employee WHERE role_id = '1';`
-    connection.query(query, (err, res) => { 
-        if(err) throw err;
+    connection.query(query, (err, res) => {
+        if (err) throw err;
         inquirer
-        .prompt([
-            {
-                name: 'mgr',
-                type: 'list',
-                choices: res.map(choice => choice.full_name),
-                message:'Select the manager whose employees you wish to view.',
-            }
-        ])
-        .then((answer) => { 
-            console.log(`Selecting all employees who report to ${answer.mgr}...\n`)
-            let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name' FROM employee WHERE manager_id = (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.mgr}');`
-            connection.query(query, (err, res) =>  { 
-                if (err) throw err;
-                console.table(res);
-                init();
-            });     
-        });
+            .prompt([
+                {
+                    name: 'mgr',
+                    type: 'list',
+                    choices: res.map(choice => choice.full_name),
+                    message: 'Select the manager whose employees you wish to view.',
+                }
+            ])
+            .then((answer) => {
+                console.log(`Selecting all employees who report to ${answer.mgr}...\n`)
+                let query = `SELECT employee.id AS 'ID', first_name AS 'First Name', last_name AS 'Last Name' FROM employee WHERE manager_id = (SELECT id FROM employee WHERE CONCAT(first_name, " ", last_name) = '${answer.mgr}');`
+                connection.query(query, (err, res) => {
+                    if (err) throw err;
+                    console.table(res);
+                    init();
+                });
+            });
     });
 }
 
@@ -406,56 +405,4 @@ const updateMgr = () => {
                     });
             });
     });
-}
-// Determine what user wants to remove
-const remove = () => {
-    inquirer
-        .prompt({
-            name: 'action',
-            type: 'rawlist',
-            message: 'What would you like to remove?',
-            choices: [
-                'Department',
-                'Role',
-                'Employee',
-            ],
-        })
-        .then((answer) => {
-            switch (answer.action) {
-                case 'Department':
-                    deleteDepartment();
-                    break;
-                case 'Role':
-                    deleteRole();
-                    break;
-                case 'Employee':
-                    deleteEmployee();
-                    break;
-                default:
-                    console.log(`Invalid action: ${answer.action}`);
-                    init();
-                    break;
-            }
-        });
-}
-//Remove department
-const deleteDepartment = () => {
-    inquirer
-        .prompt({
-            name: 'department',
-            type: 'input',
-            massage: 'Please enter the id of the department you would like to remove.'
-        })
-        .then((answer) => {
-            console.log('Removing department...\n');
-            const query = connection.query(
-                'DELETE FROM department WHERE ?',
-                {
-                    id: answer.department,
-                },
-                (err, res) => {
-                    if (err) throw err;
-                    console.log(`${res.affectedRows} department removed!\n`);
-                });
-        });
 }
